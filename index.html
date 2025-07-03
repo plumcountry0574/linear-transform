@@ -1,99 +1,201 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>좌표평면 웹사이트</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: #f0f0f0;
-        }
-        canvas {
-            border: 1px solid black;
-            background: white;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Geogebra 느낌 좌표평면 UI</title>
+<style>
+  body {
+    margin: 0; 
+    background: #f7f7f7;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  header {
+    background: #3a3a3a;
+    color: white;
+    padding: 10px 15px;
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+
+  #container {
+    flex: 1;
+    display: flex;
+    background: white;
+    border-top: 1px solid #ccc;
+  }
+
+  /* 좌측 좌표평면 영역 */
+  #plane-container {
+    position: relative;
+    flex: 1;
+    background: #fff;
+    border-right: 1px solid #ccc;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    background: #fff;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* 우측 사이드바 */
+  #sidebar {
+    width: 280px;
+    padding: 20px;
+    background: #f0f0f0;
+    box-sizing: border-box;
+    border-left: 1px solid #ccc;
+  }
+
+  #sidebar h2 {
+    margin-top: 0;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+
+  /* 확대/축소 버튼 */
+  .zoom-buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .zoom-button {
+    width: 35px;
+    height: 35px;
+    background: #4a90e2;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    transition: background 0.3s ease;
+  }
+
+  .zoom-button:hover {
+    background: #357ABD;
+  }
+
+  /* 상태바 */
+  #statusbar {
+    height: 30px;
+    padding: 5px 15px;
+    background: #eee;
+    font-size: 0.9rem;
+    color: #333;
+    border-top: 1px solid #ccc;
+  }
+</style>
 </head>
 <body>
-<canvas id="plane" width="600" height="600"></canvas>
+
+<header>Geogebra 느낌 좌표평면 UI</header>
+
+<div id="container">
+  <div id="plane-container">
+    <canvas id="plane" width="800" height="600"></canvas>
+
+    <div class="zoom-buttons" aria-label="Zoom Controls">
+      <button class="zoom-button" id="zoom-in" aria-label="Zoom In">＋</button>
+      <button class="zoom-button" id="zoom-out" aria-label="Zoom Out">−</button>
+    </div>
+  </div>
+
+  <aside id="sidebar">
+    <h2>정보 패널</h2>
+    <p>좌표나 도형 정보를 여기 표시합니다.</p>
+  </aside>
+</div>
+
+<div id="statusbar">마우스를 움직이면 좌표가 여기에 표시됩니다.</div>
 
 <script>
-const canvas = document.getElementById('plane');
-const ctx = canvas.getContext('2d');
+  const canvas = document.getElementById('plane');
+  const ctx = canvas.getContext('2d');
+  const statusbar = document.getElementById('statusbar');
 
-const width = canvas.width;
-const height = canvas.height;
-const originX = width / 2;
-const originY = height / 2;
-const scale = 20;  // 1칸당 픽셀 수
+  let scale = 40; // 1칸 크기 (픽셀)
+  let origin = {x: canvas.width/2, y: canvas.height/2};
 
-// 좌표평면 그리기
-function drawGrid() {
-    ctx.clearRect(0, 0, width, height);
+  // 그리드 그리기
+  function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 배경 흰색
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 격자 선 스타일
     ctx.strokeStyle = '#ddd';
     ctx.lineWidth = 1;
 
     // 수직선
-    for (let x = 0; x <= width; x += scale) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
+    for(let x = origin.x % scale; x < canvas.width; x += scale) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
     }
-
     // 수평선
-    for (let y = 0; y <= height; y += scale) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
+    for(let y = origin.y % scale; y < canvas.height; y += scale) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
     }
 
-    // x, y축
-    ctx.strokeStyle = 'black';
+    // 축 그리기
+    ctx.strokeStyle = '#333';
     ctx.lineWidth = 2;
-
     // y축
     ctx.beginPath();
-    ctx.moveTo(originX, 0);
-    ctx.lineTo(originX, height);
+    ctx.moveTo(origin.x, 0);
+    ctx.lineTo(origin.x, canvas.height);
     ctx.stroke();
-
     // x축
     ctx.beginPath();
-    ctx.moveTo(0, originY);
-    ctx.lineTo(width, originY);
+    ctx.moveTo(0, origin.y);
+    ctx.lineTo(canvas.width, origin.y);
     ctx.stroke();
-}
+  }
 
-function drawPoint(x, y, color = "red") {
-    const canvasX = originX + x * scale;
-    const canvasY = originY - y * scale;
+  drawGrid();
 
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(canvasX, canvasY, 4, 0, 2 * Math.PI);
-    ctx.fill();
-}
-
-drawGrid();
-
-// 클릭으로 점 찍기
-canvas.addEventListener('click', (e) => {
+  // 마우스 움직임 좌표 표시
+  canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
 
-    const coordX = ((clickX - originX) / scale).toFixed(2);
-    const coordY = ((originY - clickY) / scale).toFixed(2);
+    // 캔버스 좌표 → 수학 좌표 변환
+    const x = ((cx - origin.x) / scale).toFixed(2);
+    const y = ((origin.y - cy) / scale).toFixed(2);
 
-    drawPoint(coordX, coordY);
-    console.log(`점 찍음: (${coordX}, ${coordY})`);
-});
+    statusbar.textContent = `좌표: (${x}, ${y})`;
+  });
+
+  // 확대 / 축소 기능 (UI 버튼에 연결)
+  document.getElementById('zoom-in').addEventListener('click', () => {
+    if(scale < 100) scale += 5;
+    drawGrid();
+  });
+  document.getElementById('zoom-out').addEventListener('click', () => {
+    if(scale > 10) scale -= 5;
+    drawGrid();
+  });
 </script>
+
 </body>
 </html>
