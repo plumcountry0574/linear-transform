@@ -76,4 +76,24 @@ function drawPoint(x, y, color = "red") {
 
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(canvasX, canvasY, 4, 0, 2 * Math.*
+    ctx.arc(canvasX, canvasY, 4, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+drawGrid();
+
+// 클릭으로 점 찍기
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    const coordX = ((clickX - originX) / scale).toFixed(2);
+    const coordY = ((originY - clickY) / scale).toFixed(2);
+
+    drawPoint(coordX, coordY);
+    console.log(`점 찍음: (${coordX}, ${coordY})`);
+});
+</script>
+</body>
+</html>
