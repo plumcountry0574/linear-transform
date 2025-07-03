@@ -1,12 +1,79 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>2D Linear Transformation Visualizer</title>
+    <meta charset="UTF-8">
+    <title>좌표평면 웹사이트</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid black;
+            background: white;
+        }
+    </style>
 </head>
 <body>
-  <h1>2차원 선형변환 시각화</h1>
-  <p>이 웹사이트는 2D 선형변환을 시각화하는 도구입니다.</p>
-  <p>ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ</p>
-</body>
-</html>
+<canvas id="plane" width="600" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('plane');
+const ctx = canvas.getContext('2d');
+
+const width = canvas.width;
+const height = canvas.height;
+const originX = width / 2;
+const originY = height / 2;
+const scale = 20;  // 1칸당 픽셀 수
+
+// 좌표평면 그리기
+function drawGrid() {
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.strokeStyle = '#ddd';
+    ctx.lineWidth = 1;
+
+    // 수직선
+    for (let x = 0; x <= width; x += scale) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+
+    // 수평선
+    for (let y = 0; y <= height; y += scale) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+
+    // x, y축
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 2;
+
+    // y축
+    ctx.beginPath();
+    ctx.moveTo(originX, 0);
+    ctx.lineTo(originX, height);
+    ctx.stroke();
+
+    // x축
+    ctx.beginPath();
+    ctx.moveTo(0, originY);
+    ctx.lineTo(width, originY);
+    ctx.stroke();
+}
+
+function drawPoint(x, y, color = "red") {
+    const canvasX = originX + x * scale;
+    const canvasY = originY - y * scale;
+
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(canvasX, canvasY, 4, 0, 2 * Math.*
