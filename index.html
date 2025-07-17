@@ -1,201 +1,334 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Geogebra 느낌 좌표평면 UI</title>
-<style>
-  body {
-    margin: 0; 
-    background: #f7f7f7;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    user-select: none;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-  }
+<html lang="ko"> <!--한국어-->
+  <head>
+    <meta charset="UTF-8">
+    <title>선형변환</title> <!--제목-->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> <!--수학 기호 사용-->
+    <style>
+      body {
+        margin: 0; /* 기본 여백 제거 */
+        padding: 0; /*기본 여백 제거*/
+        display: flex; /*정렬 준비*/
+        flex-direction: column; /*세로로 정렬*/
+      }
 
-  header {
-    background: #3a3a3a;
-    color: white;
-    padding: 10px 15px;
-    font-weight: 600;
-    font-size: 1.2rem;
-  }
+      header {
+        width: 100vw; /*화면 꽉 채우기*/
+        height: 50px; /*높이 고정*/
+        padding: 0 20px; /*좌우로만 여백*/
+        background-color: #2e3d86; /*배경색*/
 
-  #container {
-    flex: 1;
-    display: flex;
-    background: white;
-    border-top: 1px solid #ccc;
-  }
+        box-sizing: border-box; /*정해진 사이즈 안으로 모두 집어넣기*/
+        border-bottom: 5px solid #19224d; /*테두리*/
+        color: white; /*글자색*/
 
-  /* 좌측 좌표평면 영역 */
-  #plane-container {
-    position: relative;
-    flex: 1;
-    background: #fff;
-    border-right: 1px solid #ccc;
-    overflow: hidden;
-  }
+        font-size: 1rem; /*글자 사이즈*/
+        font-weight: bold; /*글자 두께*/
+        line-height: 45px; /*글자 높이*/
+      }
 
-  canvas {
-    display: block;
-    background: #fff;
-    width: 100%;
-    height: 100%;
-  }
+      main {
+        display: flex; /*matrix, graph 나란히 배치*/
+        height: calc(100vh - 50px); /* 헤더를 뺀 높이 */
+      }
 
-  /* 우측 사이드바 */
-  #sidebar {
-    width: 280px;
-    padding: 20px;
-    background: #f0f0f0;
-    box-sizing: border-box;
-    border-left: 1px solid #ccc;
-  }
+      #leftbox {
+        width: 205px; /*가로*/
+        padding: 5px; /*여백*/
+        border-right: 5px solid #19224d; /*오른쪽 구분선*/
+        box-sizing: border-box; /*정해진 사이즈 유지*/
+        background-color: white; /*배경색*/
 
-  #sidebar h2 {
-    margin-top: 0;
-    font-weight: 600;
-    margin-bottom: 15px;
-  }
+        color: black; /*글자색*/
 
-  /* 확대/축소 버튼 */
-  .zoom-buttons {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+        position: relative; /*부모 역할*/
+      }
 
-  .zoom-button {
-    width: 35px;
-    height: 35px;
-    background: #4a90e2;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    transition: background 0.3s ease;
-  }
+      .vector{ /*벡터표시*/
+        width: 190px; /*가로*/
+        height: 40px; /*세로*/
+        padding: 5px;
+        border: 2.5px solid #19224d; /*테두리*/
+        box-sizing: border-box;
+        background-color: white;
 
-  .zoom-button:hover {
-    background: #357ABD;
-  }
+        color: black;
+        line-height: 20px; /*글자 높이 조정*/
 
-  /* 상태바 */
-  #statusbar {
-    height: 30px;
-    padding: 5px 15px;
-    background: #eee;
-    font-size: 0.9rem;
-    color: #333;
-    border-top: 1px solid #ccc;
-  }
-</style>
-</head>
-<body>
+        position: absolute; /*position 이 static 이 아닌 상위 개념을 찾아서 기준으로 움직임*/ 
+        top: 5px;
+        left: 5px;
+      }
 
-<header>Geogebra 느낌 좌표평면 UI</header>
+      .unitvectorborder{ /*단위벡터 표시*/
+        width: 190px; /*가로*/
+        height: 80px; /*세로*/
+        padding: 5px;
+        border: 2.5px solid #19224d; /*테두리*/
+        box-sizing: border-box;
+        background-color: white;
 
-<div id="container">
-  <div id="plane-container">
-    <canvas id="plane" width="800" height="600"></canvas>
+        color: black;
 
-    <div class="zoom-buttons" aria-label="Zoom Controls">
-      <button class="zoom-button" id="zoom-in" aria-label="Zoom In">＋</button>
-      <button class="zoom-button" id="zoom-out" aria-label="Zoom Out">−</button>
-    </div>
-  </div>
+        position: absolute; /*position 이 static 이 아닌 상위 개념을 찾아서 기준으로 움직임*/
+        top: 50px;
+        left: 5px;
+      }
 
-  <aside id="sidebar">
-    <h2>정보 패널</h2>
-    <p>좌표나 도형 정보를 여기 표시합니다.</p>
-  </aside>
-</div>
+      .unitvectori{
+        width: 185px; /*가로*/
+        height: 37.5px; /*세로*/
+        padding: 5px;
+        box-sizing: border-box;
+        background-color: white;
 
-<div id="statusbar">마우스를 움직이면 좌표가 여기에 표시됩니다.</div>
+        color: black;
+        line-height: 18.75px; /*글자 높이 조정*/
 
-<script>
-  const canvas = document.getElementById('plane');
-  const ctx = canvas.getContext('2d');
-  const statusbar = document.getElementById('statusbar');
+        position: absolute; /*position 이 static 이 아닌 상위 개념을 찾아서 기준으로 움직임*/
+        top: 0px;
+        left: 0px;
+      }
 
-  let scale = 40; // 1칸 크기 (픽셀)
-  let origin = {x: canvas.width/2, y: canvas.height/2};
+      .unitvectorj{
+        width: 185px; /*가로*/
+        height: 37.5px; /*세로*/
+        padding: 5px;
+        box-sizing: border-box;
+        background-color: white;
 
-  // 그리드 그리기
-  function drawGrid() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        color: black;
+        line-height: 18.75px; /*글자 높이 조정*/
 
-    // 배경 흰색
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+        position: absolute; /*position 이 static 이 아닌 상위 개념을 찾아서 기준으로 움직임*/
+        top: 37.5px;
+        left: 0px;
+      }
 
-    // 격자 선 스타일
-    ctx.strokeStyle = '#ddd';
-    ctx.lineWidth = 1;
+      .matrixlog{
+        width: 190px; /*가로*/
+        height: calc(100vh - 325px); /*맞춤형 세로*/
+        padding: 5px;
+        border: 2.5px solid #19224d; /*테두리*/
+        box-sizing: border-box;
+        background-color: white;
 
-    // 수직선
-    for(let x = origin.x % scale; x < canvas.width; x += scale) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
-    }
-    // 수평선
-    for(let y = origin.y % scale; y < canvas.height; y += scale) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
+        color: black;
 
-    // 축 그리기
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    // y축
-    ctx.beginPath();
-    ctx.moveTo(origin.x, 0);
-    ctx.lineTo(origin.x, canvas.height);
-    ctx.stroke();
-    // x축
-    ctx.beginPath();
-    ctx.moveTo(0, origin.y);
-    ctx.lineTo(canvas.width, origin.y);
-    ctx.stroke();
-  }
+        position: absolute; /*position 이 static 이 아닌 상위 개념을 찾아서 기준으로 움직임*/
+        top: 135px;
+        left: 5px;
+      }
 
-  drawGrid();
+      .matrixinput{
+        width: 190px; /*가로*/
+        height: 130px; /*세로*/
+        padding: 5px;
+        border: 2.5px solid #19224d; /*테두리*/
+        box-sizing: border-box;
+        background-color: white;
 
-  // 마우스 움직임 좌표 표시
-  canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
+        color: black;
 
-    // 캔버스 좌표 → 수학 좌표 변환
-    const x = ((cx - origin.x) / scale).toFixed(2);
-    const y = ((origin.y - cy) / scale).toFixed(2);
+        position: absolute; /*position 이 static 이 아닌 상위 개념을 찾아서 기준으로 움직임*/
+        bottom: 5px;
+        left: 5px;
+      }
 
-    statusbar.textContent = `좌표: (${x}, ${y})`;
-  });
+      #plane {
+        flex: 1; /* 남은 공간 모두 차지 */
+        position: relative; /*위치 기준, 아마 지금은 필요 없음*/
+        background-color: #404040; /* 연한 회색 배경 (변경 가능) */
+        
+        position: relative;
+        overflow: hidden;
+      }
 
-  // 확대 / 축소 기능 (UI 버튼에 연결)
-  document.getElementById('zoom-in').addEventListener('click', () => {
-    if(scale < 100) scale += 5;
-    drawGrid();
-  });
-  document.getElementById('zoom-out').addEventListener('click', () => {
-    if(scale > 10) scale -= 5;
-    drawGrid();
-  });
-</script>
+      #graph {
+        width: calc(100vw - 205px);
+        height: calc(100vh - 50px);
 
-</body>
+        position: absolute;
+        top:0;
+        left:0;
+      }
+    </style>
+  </head>
+  <body>
+    
+    <script>
+    </script>
+
+
+    <header>2D 선형변환</header>
+
+    <main>
+      <div id="leftbox">
+        <div class="vector">\(\vec{v}=00000\hat{i} + 00000\hat{j}\)</div>
+        <div class="unitvectorborder">
+          <div class="unitvectori">\(\hat{i}=(00000,00000)\)</div>
+          <div class="unitvectorj">\(\hat{j}=(00000,00000)\)</div>
+        </div>
+        <div class="matrixlog"></div>
+        <div class="matrixinput"></div>
+      </div>
+      <div id="plane">
+        <canvas id="graph"> <!--여기에 좌표평면 넣기--> </canvas>
+      </div>
+    </main>
+
+    <script>
+      const canvas = document.getElementById("graph"); //어떤 캔버스 사용?
+      const ctx = canvas.getContext("2d"); //2d 로 사용
+
+      let scale=70;
+      let vi=0;
+      let vj=0;
+      let scaleunit=1;
+      //숫자 좌표축에서 띄우기
+      let labelgap=4;
+      //절대적 스케일
+      let adsscale=70;
+
+
+      function resizeCanvas() { //창 크키 변화에 따라 자동으로 변화
+
+        console.log(scale,scaleunit,adsscale);/////////////////////////////////////////////////////////////////디버깅용
+
+        canvas.width = window.innerWidth - 205;
+        canvas.height = window.innerHeight - 50;
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "10px sans-serif";
+        ctx.fillStyle = "black";
+
+        // y축 방향
+        for(let i=-16;i<=16;i++){
+          if(i){
+            ctx.beginPath();         // 새 경로 시작
+            ctx.moveTo((canvas.width)/2+scale*i, 0);      // 시작점
+            ctx.lineTo((canvas.width)/2+scale*i, canvas.height);    // 끝점
+            ctx.strokeStyle = "#000000"; // 선 색상
+            ctx.lineWidth = 0.5;       // 선 두께
+            ctx.stroke();            // 실제 선 그리기
+            }
+          if(i){
+            ctx.fillText(scaleunit*i, (canvas.width)/2+scale*i+labelgap/2, (canvas.height)/2-labelgap);
+          }  
+          }
+
+          //연한 선
+          for(let i=-16;i<=15;i++){
+            ctx.beginPath();         // 새 경로 시작
+            ctx.moveTo((canvas.width)/2+scale*(i+0.5), 0);      // 시작점
+            ctx.lineTo((canvas.width)/2+scale*(i+0.5), canvas.height);    // 끝점
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.5)"; // 선 색상
+            ctx.lineWidth = 0.25;       // 선 두께
+            ctx.stroke();            // 실제 선 그리기
+          }
+
+
+        //x축 방향
+        for(let i=-16;i<=16;i++){
+          if(i){
+            ctx.beginPath();         // 새 경로 시작
+            ctx.moveTo(0, (canvas.height)/2+scale*i);      // 시작점
+            ctx.lineTo(canvas.width, (canvas.height)/2+scale*i);    // 끝점
+            ctx.strokeStyle = "#000000"; // 선 색상
+            ctx.lineWidth = 0.5;       // 선 두께
+            ctx.stroke();            // 실제 선 그리기
+            }
+          if(i){
+            ctx.fillText(scaleunit*(-i), (canvas.width)/2+labelgap, (canvas.height)/2+scale*i-(labelgap/2));
+          }
+          }
+
+          //연한 선
+          for(let i=-16;i<=15;i++){
+            ctx.beginPath();         // 새 경로 시작
+            ctx.moveTo(0, (canvas.height)/2+scale*(i+0.5));      // 시작점
+            ctx.lineTo(canvas.width, (canvas.height)/2+scale*(i+0.5));    // 끝점
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.5)"; // 선 색상
+            ctx.lineWidth = 0.25;       // 선 두께
+            ctx.stroke();            // 실제 선 그리기
+          }
+        
+        //원점 표시
+        ctx.fillText(0, (canvas.width)/2+labelgap, (canvas.height)/2-labelgap);
+
+
+        //x축
+        ctx.beginPath();         // 새 경로 시작
+        ctx.moveTo(0, (canvas.height)/2);      // 시작점
+        ctx.lineTo(canvas.width, (canvas.height)/2);    // 끝점
+        ctx.strokeStyle = "#ff0000"; // 선 색상
+        ctx.lineWidth = 1;       // 선 두께
+        ctx.stroke();            // 실제 선 그리기
+
+
+        //y축
+        ctx.beginPath();         // 새 경로 시작
+        ctx.moveTo((canvas.width)/2, 0);      // 시작점
+        ctx.lineTo((canvas.width)/2, canvas.height);    // 끝점
+        ctx.strokeStyle = "#0000ff"; // 선 색상
+        ctx.lineWidth = 1;       // 선 두께
+        ctx.stroke();            // 실제 선 그리기
+
+
+        //원점
+        ctx.beginPath();
+        ctx.arc((canvas.width)/2, (canvas.height)/2, 0.75, 0, Math.PI * 2);  // 중심 (100, 75), 반지름 2px
+        ctx.fillStyle = "#ff00ff";               // 점 색상
+        ctx.fill();                          // 채우기
+
+
+        unitscalesize()
+      }
+
+      resizeCanvas(); //한번 실행
+
+      window.addEventListener("resize", resizeCanvas); //창 변할때마다 실행
+
+
+
+      function scalesize(sizing){
+        if(sizing<0){
+          adsscale*=1.1;
+        } else if(sizing>0){
+          adsscale*=1/1.1;
+        }
+        unitscalesize()
+      }
+
+
+      function unitscalesize(){
+        scale=adsscale*scaleunit;//스케일 작업
+        
+        if(scale*12<(canvas.width/2)){//너무 확대했을때
+          console.log(scale,scaleunit,adsscale,"needscaleup");//디버깅용
+          scaleunit*=2;//
+        }
+        if(scale*5>(canvas.width/2)){//너무 축소했을때
+          console.log(scale,scaleunit,adsscale,"needscaledown");//디버깅용
+          scaleunit*=0.5;//
+        }//
+        
+        scale=adsscale*scaleunit;//
+      }
+     
+      canvas.addEventListener("wheel", (event) => {
+        event.preventDefault(); // 스크롤 자체를 막고 네가 원하는 동작만 수행
+        scalesize(event.deltaY)
+        resizeCanvas()
+      });
+
+
+
+
+
+    </script>
+
+    
+  </body>
 </html>
